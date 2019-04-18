@@ -1,0 +1,71 @@
+version: '3'
+services:
+  collector:
+    image: jaegertracing/jaeger-collector:1.11
+    environment: 
+      SPAN_STORAGE_TYPE: cassandra
+      CASSANDRA_SERVERS: cassandra
+      CASSANDRA_KEYSPACE: jaeger_v1_test
+    links:
+      - cassandra
+      - cassandra2
+      - cassandra3
+  agent: 
+    image: jaegertracing/jaeger-agent:1.11
+    restart: unless-stopped
+    command: 
+      # - --collector.host-port=collector:14267
+      - --reporter.grpc.host-port=collector:14250
+      - --log-level=debug
+    ports:
+      - 5775:5775/udp
+      - 6831:6831/udp
+      - 6832:6832/udp
+      - 5778:5778/tcp
+    links:
+      - collector
+  web:
+    image: jaegertracing/jaeger-query:1.11
+    restart: unless-stopped
+    ports:
+      - 16686:16686
+      - 16687:16687
+    environment: 
+      SPAN_STORAGE_TYPE: cassandra
+      CASSANDRA_SERVERS: cassandra
+      CASSANDRA_KEYSPACE: jaeger_v1_test
+    links:
+      - cassandra
+      - cassandra2
+      - cassandra3
+
+
+  cassandra-schema:
+    image: jaegertracing/jaeger-cassandra-schema:1.11
+    links:
+      - cassandra
+      - cassandra2
+      - cassandra3
+    environment: 
+      CQLSH_HOST: cassandra
+      DATACENTER: test
+      MODE: test
+
+  cassandra:
+    image: scylladb/scylla:3.0.4
+    volumes:
+      - .docker/scylladb/1:/var/lib/scylla
+  cassandra2:
+    image: scylladb/scylla:3.0.4
+    command: --seeds=cassandra
+    links:
+      - cassandra
+    volumes:
+      - .docker/scylladb/2:/var/lib/scylla
+  cassandra3:
+    image: scylladb/scylla:3.0.4
+    command: --seeds=cassandra
+    links:
+      - cassandra
+    volumes:
+      - .docker/scylladb/3:/var/lib/scylla
