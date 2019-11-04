@@ -1,4 +1,4 @@
-This project has docker-compose file for running [Jaeger] with [scylladb] as a storage database (not casandra).
+This project has docker-compose file for running [Jaeger] with [scylladb] as a storage database (not Cassandra).
 
 This project still in its initial stage, we only test by putting tracing inputs from a sample [PHP project] which uses opencensus to send tracing data to Jaeger. 
 
